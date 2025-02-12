@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Matrícula</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            flex-direction: column;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin: 10px;
+            width: 300px;
+        }
+        input, button, select {
+            margin: 10px 0;
+            padding: 10px;
+            width: 90%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        .hidden {
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #28a745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="login-screen">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Usuário">
+        <input type="password" id="password" placeholder="Senha">
+        <button onclick="login()">Entrar</button>
+    </div>
+
+    <div class="container hidden" id="dashboard">
+        <h2>Bem-vindo ao Sistema de Matrícula</h2>
+        <button onclick="showScreen('cadastro-aluno')">Cadastrar Aluno</button>
+        <button onclick="showScreen('consulta-alunos')">Consultar Alunos</button>
+        <button onclick="showScreen('cadastro-curso')">Cadastrar Curso</button>
+        <button onclick="showScreen('consulta-cursos')">Consultar Cursos</button>
+        <button onclick="showScreen('cadastro-professor')">Cadastrar Professor</button>
+        <button onclick="showScreen('consulta-professores')">Consultar Professores</button>
+        <button onclick="showScreen('matricular-aluno')">Matricular Aluno</button>
+        <button onclick="showScreen('consulta-matriculas')">Consultar Matrículas</button>
+    </div>
+
+    <div class="container hidden" id="cadastro-aluno">
+        <h2>Cadastro de Aluno</h2>
+        <input type="text" id="nome-aluno" placeholder="Nome do Aluno">
+        <input type="text" id="cpf-aluno" placeholder="CPF">
+        <input type="date" id="data-nascimento" placeholder="Data de Nascimento">
+        <input type="text" id="telefone-aluno" placeholder="Telefone">
+        <button onclick="saveStudent()">Salvar</button>
+    </div>
+
+    <div class="container hidden" id="consulta-alunos">
+        <h2>Alunos Cadastrados</h2>
+        <table>
+            <tr><th>Nome</th><th>CPF</th><th>Telefone</th></tr>
+            <tbody id="student-list"></tbody>
+        </table>
+        <button onclick="showScreen('dashboard')">Voltar</button>
+    </div>
+
+    <div class="container hidden" id="cadastro-curso">
+        <h2>Cadastro de Curso</h2>
+        <input type="text" id="nome-curso" placeholder="Nome do Curso">
+        <input type="text" id="descricao-curso" placeholder="Descrição">
+        <input type="number" id="carga-horaria-curso" placeholder="Carga Horária">
+        <button onclick="saveCourse()">Salvar</button>
+    </div>
+
+    <div class="container hidden" id="consulta-cursos">
+        <h2>Cursos Cadastrados</h2>
+        <table>
+            <tr><th>Nome do Curso</th><th>Descrição</th><th>Carga Horária</th></tr>
+            <tbody id="course-list"></tbody>
+        </table>
+        <button onclick="showScreen('dashboard')">Voltar</button>
+    </div>
+
+    <div class="container hidden" id="cadastro-professor">
+        <h2>Cadastro de Professor</h2>
+        <input type="text" id="nome-professor" placeholder="Nome do Professor">
+        <input type="text" id="especializacao-professor" placeholder="Especialização">
+        <input type="text" id="email-professor" placeholder="Email">
+        <input type="text" id="telefone-professor" placeholder="Telefone">
+        <button onclick="saveProfessor()">Salvar</button>
+    </div>
+
+    <div class="container hidden" id="consulta-professores">
+        <h2>Professores Cadastrados</h2>
+        <table>
+            <tr><th>Nome</th><th>Especialização</th><th>Email</th></tr>
+            <tbody id="professor-list"></tbody>
+        </table>
+        <button onclick="showScreen('dashboard')">Voltar</button>
+    </div>
+
+    <div class="container hidden" id="matricular-aluno">
+        <h2>Matrícula de Aluno</h2>
+        <select id="select-aluno">
+            <!-- List of students will be populated here -->
+        </select>
+        <select id="select-curso">
+            <!-- List of courses will be populated here -->
+        </select>
+        <button onclick="saveMatricula()">Confirmar Matrícula</button>
+    </div>
+
+    <div class="container hidden" id="consulta-matriculas">
+        <h2>Matrículas Realizadas</h2>
+        <table>
+            <tr><th>Aluno</th><th>Curso</th></tr>
+            <tbody id="matricula-list"></tbody>
+        </table>
+        <button onclick="showScreen('dashboard')">Voltar</button>
+    </div>
+
+    <script>
+        function login() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.container').forEach(el => el.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // Função para salvar o aluno
+        function saveStudent() {
+            const nome = document.getElementById('nome-aluno').value;
+            const cpf = document.getElementById('cpf-aluno').value;
+            const dataNascimento = document.getElementById('data-nascimento').value;
+            const telefone = document.getElementById('telefone-aluno').value;
+
+            if (nome && cpf && dataNascimento && telefone) {
+                const aluno = { nome, cpf, dataNascimento, telefone };
+                let alunos = JSON.parse(localStorage.getItem('alunos')) || [];
+                alunos.push(aluno);
+                localStorage.setItem('alunos', JSON.stringify(alunos));
+                showScreen('consulta-alunos');
+                alert('Aluno cadastrado com sucesso!');
+                displayStudents();
+            } else {
+                alert('Por favor, preencha todos os campos.');
+            }
+        }
+
+        // Exibir alunos cadastrados
+        function displayStudents() {
+            const alunos = JSON.parse(localStorage.getItem('alunos')) || [];
+            const alunoList = document.getElementById('student-list');
+            alunoList.innerHTML = '';
+            alunos.forEach((aluno) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${aluno.nome}</td><td>${aluno.cpf}</td><td>${aluno.telefone}</td>`;
+                alunoList.appendChild(row);
+            });
+
+            // Atualizar select de alunos para matrículas
+            const selectAluno = document.getElementById('select-aluno');
+            selectAluno.innerHTML = '';
+            alunos.forEach((aluno) => {
+                const option = document.createElement('option');
+                option.textContent = aluno.nome;
+                selectAluno.appendChild(option);
+            });
+        }
+
+        // Função para salvar o curso
+        function saveCourse() {
+            const nome = document.getElementById('nome-curso').value;
+            const descricao = document.getElementById('descricao-curso').value;
+            const cargaHoraria = document.getElementById('carga-horaria-curso').value;
+
+            if (nome && descricao && cargaHoraria) {
+                const curso = { nome, descricao, cargaHoraria };
+                let cursos = JSON.parse(localStorage.getItem('cursos')) || [];
+                cursos.push(curso);
+                localStorage.setItem('cursos', JSON.stringify(cursos));
+                showScreen('consulta-cursos');
+                alert('Curso cadastrado com sucesso!');
+                displayCourses();
+            } else {
+                alert('Por favor, preencha todos os campos.');
+            }
+        }
+
+        // Exibir cursos cadastrados
+        function displayCourses() {
+            const cursos = JSON.parse(localStorage.getItem('cursos')) || [];
+            const courseList = document.getElementById('course-list');
+            courseList.innerHTML = '';
+            cursos.forEach((curso) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${curso.nome}</td><td>${curso.descricao}</td><td>${curso.cargaHoraria}</td>`;
+                courseList.appendChild(row);
+            });
+
+            // Atualizar select de cursos para matrículas
+            const selectCurso = document.getElementById('select-curso');
+            selectCurso.innerHTML = '';
+            cursos.forEach((curso) => {
+                const option = document.createElement('option');
+                option.textContent = curso.nome;
+                selectCurso.appendChild(option);
+            });
+        }
+
+        // Função para salvar o professor
+        function saveProfessor() {
+            const nome = document.getElementById('nome-professor').value;
+            const especializacao = document.getElementById('especializacao-professor').value;
+            const email = document.getElementById('email-professor').value;
+            const telefone = document.getElementById('telefone-professor').value;
+
+            if (nome && especializacao && email && telefone) {
+                const professor = { nome, especializacao, email, telefone };
+                let professores = JSON.parse(localStorage.getItem('professores')) || [];
+                professores.push(professor);
+                localStorage.setItem('professores', JSON.stringify(professores));
+                showScreen('consulta-professores');
+                alert('Professor cadastrado com sucesso!');
+                displayProfessors();
+            } else {
+                alert('Por favor, preencha todos os campos.');
+            }
+        }
+
+        // Exibir professores cadastrados
+        function displayProfessors() {
+            const professores = JSON.parse(localStorage.getItem('professores')) || [];
+            const professorList = document.getElementById('professor-list');
+            professorList.innerHTML = '';
+            professores.forEach((professor) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${professor.nome}</td><td>${professor.especializacao}</td><td>${professor.email}</td>`;
+                professorList.appendChild(row);
+            });
+        }
+
+        // Função para matricular o aluno
+        function saveMatricula() {
+            const aluno = document.getElementById('select-aluno').value;
+            const curso = document.getElementById('select-curso').value;
+
+            let matriculas = JSON.parse(localStorage.getItem('matriculas')) || [];
+            matriculas.push({ aluno, curso });
+            localStorage.setItem('matriculas', JSON.stringify(matriculas));
+            showScreen('dashboard');
+            alert('Matrícula realizada com sucesso!');
+            displayMatriculas();
+        }
+
+        // Exibir matrículas realizadas
+        function displayMatriculas() {
+            const matriculas = JSON.parse(localStorage.getItem('matriculas')) || [];
+            const matriculaList = document.getElementById('matricula-list');
+            matriculaList.innerHTML = '';
+            matriculas.forEach((matricula) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${matricula.aluno}</td><td>${matricula.curso}</td>`;
+                matriculaList.appendChild(row);
+            });
+        }
+
+        // Iniciar com as listas de alunos, cursos e professores
+        displayStudents();
+        displayCourses();
+        displayProfessors();
+        displayMatriculas();
+    </script>
+</body>
+</html>
